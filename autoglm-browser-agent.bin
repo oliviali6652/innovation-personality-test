@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>创新人格光谱测试</title>
+<style>
+  :root { --red:#E05A3D; --blue:#2D3436; --orange:#F97316; --white:#FFF; --gray:#F8F8F5; --text:#333; --tl:#888; --opt:#22C55E; --brk:#F59E0B; --drm:#8B5CF6; --exp:#3B82F6; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f3f3f0;color:var(--text);min-height:100vh;overflow-x:hidden}
+  .app{max-width:420px;margin:0 auto;min-height:100vh;position:relative;background:var(--white)}
+  .screen{display:none;padding:0 24px;min-height:100vh;flex-direction:column}
+  .screen.active{display:flex}
+  #landing{justify-content:center;align-items:center;text-align:center;padding-top:60px;padding-bottom:60px}
+  .landing-icon{font-size:72px;margin-bottom:20px;animation:float 3s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .landing-title{font-size:28px;font-weight:900;color:var(--blue);line-height:1.3;margin-bottom:8px}
+  .landing-title span{color:var(--orange)}
+  .landing-sub{font-size:14px;color:var(--tl);margin-bottom:32px;line-height:1.6}
+  .landing-features{display:flex;gap:12px;margin-bottom:40px}
+  .landing-f{flex:1;text-align:center}.landing-f .ficon{font-size:28px;margin-bottom:4px}.landing-f .ftext{font-size:11px;color:var(--tl)}
+  .btn-start{width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--orange),#d4620a);color:white;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 16px rgba(249,115,22,.3)}
+  .btn-start:active{transform:scale(.97)}
+  .landing-note{font-size:11px;color:#ccc;margin-top:16px}
+  #quiz{padding-top:40px}
+  .quiz-progress{display:flex;gap:6px;margin-bottom:32px}
+  .quiz-progress .dot{flex:1;height:4px;border-radius:2px;background:#e5e5e0;transition:background .4s}
+  .quiz-progress .dot.done{background:var(--orange)}
+  .quiz-progress .dot.current{background:var(--orange);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .quiz-qnum{font-size:12px;color:var(--orange);font-weight:700;letter-spacing:2px;margin-bottom:12px}
+  .quiz-question{font-size:20px;font-weight:700;color:var(--blue);line-height:1.5;margin-bottom:32px}
+  .quiz-options{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+  .quiz-option{display:flex;align-items:center;gap:14px;padding:16px;border-radius:12px;border:2px solid #e8e8e3;background:var(--white);cursor:pointer;transition:all .2s;font-size:14px;color:var(--text);text-align:left}
+  .quiz-option:active{transform:scale(.98)}
+  .quiz-option .opt-letter{width:32px;height:32px;border-radius:8px;background:var(--gray);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--tl);flex-shrink:0;transition:all .3s}
+  .quiz-option.picked{border-color:var(--orange);background:#fff7f0}
+  .quiz-option.picked .opt-letter{background:var(--orange);color:white}
+  .btn-next{width:100%;padding:16px;border:none;border-radius:14px;background:var(--blue);color:white;font-size:16px;font-weight:700;cursor:pointer;opacity:.3;transition:opacity .3s,transform .2s;pointer-events:none}
+  .btn-next.active{opacity:1;pointer-events:auto}
+  .btn-next.active:active{transform:scale(.97)}
+  #result{padding:0}
+  .result-hero{padding:50px 24px 40px;text-align:center;position:relative;overflow:hidden}
+  .result-hero.optimizer{background:linear-gradient(180deg,#ecfdf5 0%,white 60%)}
+  .result-hero.breaker{background:linear-gradient(180deg,#fffbeb 0%,white 60%)}
+  .result-hero.dreamer{background:linear-gradient(180deg,#f5f3ff 0%,white 60%)}
+  .result-hero.experimenter{background:linear-gradient(180deg,#eff6ff 0%,white 60%)}
+  .result-hero::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;opacity:.15}
+  .result-hero.optimizer::before{background:var(--opt)}
+  .result-hero.breaker::before{background:var(--brk)}
+  .result-hero.dreamer::before{background:var(--drm)}
+  .result-hero.experimenter::before{background:var(--exp)}
+  .result-avatar{width:100px;height:100px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative;z-index:1}
+  .result-avatar.optimizer{background:linear-gradient(135deg,#22C55E,#16a34a);color:white;box-shadow:0 8px 24px rgba(34,197,94,.3)}
+  .result-avatar.breaker{background:linear-gradient(135deg,#F59E0B,#d97706);color:white;box-shadow:0 8px 24px rgba(245,158,11,.3)}
+  .result-avatar.dreamer{background:linear-gradient(135deg,#8B5CF6,#7c3aed);color:white;box-shadow:0 8px 24px rgba(139,92,246,.3)}
+  .result-avatar.experimenter{background:linear-gradient(135deg,#3B82F6,#2563eb);color:white;box-shadow:0 8px 24px rgba(59,130,246,.3)}
+  .result-type{font-size:13px;letter-spacing:2px;font-weight:700;margin-bottom:4px;position:relative;z-index:1}
+  .result-type.optimizer{color:#15803d}.result-type.breaker{color:#b45309}
+  .result-type.dreamer{color:#6d28d9}.result-type.experimenter{color:#1d4ed8}
+  .result-name{font-size:32px;font-weight:900;color:var(--blue);position:relative;z-index:1;margin-bottom:8px}
+  .result-tagline{font-size:14px;color:var(--tl);line-height:1.6;position:relative;z-index:1;max-width:300px;margin:0 auto}
+  .result-body{padding:0 24px 40px}
+  .result-section{margin-bottom:20px}
+  .result-section h4{font-size:13px;color:var(--tl);letter-spacing:1px;margin-bottom:10px;text-transform:uppercase}
+  .desc-card{background:var(--gray);border-radius:14px;padding:20px;font-size:14px;line-height:1.8;color:#555}
+  .desc-card strong{color:var(--blue)}
+  .toolkit-card{border-radius:14px;padding:20px;color:white;position:relative;overflow:hidden}
+  .toolkit-card.optimizer{background:linear-gradient(135deg,#22C55E,#15803d)}
+  .toolkit-card.breaker{background:linear-gradient(135deg,#F59E0B,#b45309)}
+  .toolkit-card.dreamer{background:linear-gradient(135deg,#8B5CF6,#6d28d9)}
+  .toolkit-card.experimenter{background:linear-gradient(135deg,#3B82F6,#1d4ed8)}
+  .toolkit-card::after{content:'\01F9F0';position:absolute;right:16px;top:16px;font-size:32px;opacity:.3}
+  .toolkit-card h4{font-size:14px;margin-bottom:8px;letter-spacing:1px}
+  .toolkit-card p{font-size:13px;line-height:1.7;opacity:.9}
+  .type-distribution{margin-bottom:20px}
+  .type-bar{margin-bottom:8px}
+  .type-bar .bar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px}
+  .type-bar .bar-label .l{font-weight:600}
+  .type-bar .bar-label .r{color:var(--tl)}
+  .type-bar .bar-track{height:8px;background:#eee;border-radius:4px;overflow:hidden}
+  .type-bar .bar-fill{height:100%;border-radius:4px;transition:width 1.2s ease-out}
+  .bar-fill.optimizer{background:var(--opt)}.bar-fill.breaker{background:var(--brk)}
+  .bar-fill.dreamer{background:var(--drm)}.bar-fill.experimenter{background:var(--exp)}
+  .btn-share{width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--red),#c04a2d);color:white;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-bottom:12px}
+  .btn-share:active{transform:scale(.97)}
+  .btn-retake{width:100%;padding:16px;border:2px solid #e5e5e0;border-radius:14px;background:white;color:var(--tl);font-size:14px;cursor:pointer}
+  .result-footer{text-align:center;padding:0 24px 40px;font-size:12px;color:#ccc;line-height:1.8}
+  .fade-in{animation:fadeIn .6s ease-out}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .scale-in{animation:scaleIn .5s ease-out}
+  @keyframes scaleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== LANDING ===== -->
+  <div class="screen active" id="landing">
+    <div class="landing-icon">💡</div>
+    <div class="landing-title">测测你的<br><span>创新人格光谱</span></div>
+    <div class="landing-sub">
+      你不只有一种创新方式。<br>5 道情境题，发现你在创新中<br>最自然的角色。
+    </div>
+    <div class="landing-features">
+      <div class="landing-f"><div class="ficon">⏱️</div><div class="ftext">2 分钟</div></div>
+      <div class="landing-f"><div class="ficon">🎭</div><div class="ftext">4 种人格</div></div>
+      <div class="landing-f"><div class="ficon">🧰</div><div class="ftext">专属工具包</div></div>
+    </div>
+    <button class="btn-start" id="btnStart">开始测试</button>
+    <div class="landing-note">凭直觉作答，没有对错 · 共 5 题</div>
+  </div>
+
+  <!-- ===== QUIZ ===== -->
+  <div class="screen" id="quiz">
+    <div class="quiz-progress" id="progress"></div>
+    <div class="quiz-qnum" id="qnum"></div>
+    <div class="quiz-question" id="question"></div>
+    <div class="quiz-options" id="options"></div>
+    <button class="btn-next" id="btnNext">下一题</button>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div class="screen" id="result">
+    <div class="result-hero" id="resultHero">
+      <div class="result-avatar scale-in" id="resultAvatar"></div>
+      <div class="result-type" id="resultType"></div>
+      <div class="result-name" id="resultName"></div>
+      <div class="result-tagline" id="resultTagline"></div>
+    </div>
+    <div class="result-body">
+      <div class="result-section type-distribution">
+        <h4>你的创新人格分布</h4>
+        <div id="distribution"></div>
+      </div>
+      <div class="result-section">
+        <h4>人格描述</h4>
+        <div class="desc-card" id="description"></div>
+      </div>
+      <div class="result-section">
+        <h4>专属工具包</h4>
+        <div class="toolkit-card" id="toolkit"></div>
+      </div>
+      <button class="btn-share" id="btnShare">分享我的创新人格</button>
+      <button class="btn-retake" id="btnRetake">重新测试</button>
+    </div>
+    <div class="result-footer">
+      找到你的创新角色，拥抱你的独特天赋
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  var questions = [
+    {
+      q: '面对一个模糊的新问题，你第一反应是？',
+      opts: {
+        A: '先找过往类似案例，用成熟方法快速搭框架',
+        B: '疯狂提问「为什么」，试图推翻问题本身的假设',
+        C: '立刻在脑中生成多个天马行空的草图或故事',
+        D: '冷静拆解条件，列出所有可行路径的利弊表'
+      }
+    },
+    {
+      q: '团队陷入思维僵局时，你通常扮演什么角色？',
+      opts: {
+        A: '整理者——把杂乱想法归档、排序、找交集',
+        B: '叛逆者——说「我们可能问错了问题」',
+        C: '幻想家——提出一个看似荒唐但有趣的极端方案',
+        D: '工程师——快速做一个最小原型去测试哪个能跑通'
+      }
+    },
+    {
+      q: '你对「失败」的态度更接近？',
+      opts: {
+        A: '数据——说明此路不通，需要调整参数',
+        B: '燃料——越受挫越激发我找根本原因',
+        C: '素材——失败的经历是我创作的灵感来源',
+        D: '路标——告诉我离正确解法更近了一步'
+      }
+    },
+    {
+      q: '你更喜欢哪种工作节奏？',
+      opts: {
+        A: '按计划分阶段交付，每个节点清晰可控',
+        B: '前期大量混沌探索，后期突然顿悟爆发',
+        C: '随时随性记录灵感，不受时间线约束',
+        D: '快速试错、快速迭代，以反馈驱动前进'
+      }
+    },
+    {
+      q: '别人常评价你的思维特点是？',
+      opts: {
+        A: '靠谱、系统、善于落地',
+        B: '犀利、颠覆、爱质疑常识',
+        C: '有趣、跳跃、联想力丰富',
+        D: '务实、敏锐、动手能力强'
+      }
+    }
+  ];
+
+  var personalities = {
+    A: {
+      type: '优化师型人格',
+      name: '优化师',
+      color: 'optimizer',
+      icon: '\u2699\uFE0F',
+      tagline: '你不追求颠覆，而是让现有事物变得更好。擅长微创新、流程改良、风险管理。',
+      description: '你就像一台精密调校的仪器，善于在现有体系中<strong>发现缝隙、打磨棱角、提升效率</strong>。你不需要推翻一切，因为你知道真正的进步往往藏在细节里。在团队中，你是最能让好想法<strong>落地生根</strong>的人。',
+      toolkit: '偶尔允许自己「无目的地乱想」，不给任何约束地写下 10 个「如果……会怎样」。你会惊讶地发现，那些看似无用的脑洞，往往藏着下一次流程优化的突破点。'
+    },
+    B: {
+      type: '破界者型人格',
+      name: '破界者',
+      color: 'breaker',
+      icon: '\uD83D\uDCA5',
+      tagline: '你喜欢质疑，擅长发现隐藏假设，是人群中第一个说「有没有可能我们想反了」的那个人。',
+      description: '你的大脑自带<strong>「为什么」引擎</strong>。你不满足于表面答案，总想掀开盖子看看底下到底是什么。在团队中，你是打破思维定式的关键力量——<strong>没有你，大家可能一直在错误的问题上努力</strong>。',
+      toolkit: '你的天赋是「拆」，但别忘了「建」。在推翻旧世界后，给自己定一个规则：每提出一个质疑，就跟一个建设性替代方案。这会让你的破界力从「杀伤」变成「创造」。'
+    },
+    C: {
+      type: '梦想家型人格',
+      name: '梦想家',
+      color: 'dreamer',
+      icon: '\uD83C\uDF08',
+      tagline: '你拥有跨领域联想能力，能从一个毫不相干的领域忽然蹦出解决当前问题的灵感。',
+      description: '你的思维像<strong>蒲公英的种子</strong>，四处飘散、随处生根。别人看到 A 和 B，你看到的是全新的可能性。在团队中，你是那个「等一下，我有个奇怪的想法……」然后<strong>全场安静听你说完</strong>的人。',
+      toolkit: '给你的想象力加一根「落地导线」——每次天马行空后，强迫自己回答三个问题：1) 这能解决谁的什么具体痛点？2) 实现它的最小步骤是什么？3) 谁来迈出第一步？这会让你从空想家变成有执行力的梦想家。'
+    },
+    D: {
+      type: '实验者型人格',
+      name: '实验者',
+      color: 'experimenter',
+      icon: '\uD83D\uDD2C',
+      tagline: '你不迷信理论，信奉「做出来再说」。原型、数据、迭代，是你的母语。',
+      description: '你信「手比脑子快」。对你来说，<strong>一个跑通的最小原型比一百页 PPT 更有说服力</strong>。在团队中，你是那个把口号变成实物、把概念变成数据的实干家。',
+      toolkit: '你的速度是优势，但偶尔也会让你「高效地做无用之事」。每次动手前，花 5 分钟画一个白板：我们到底在解决什么问题？验证什么假设？失败的信号长什么样？这 5 分钟的慢，能让你接下来的快步更有价值。'
+    }
+  };
+
+  var currentQ = 0;
+  var answers = [];
+  var pickedIdx = -1;
+
+  function renderProgress() {
+    var p = document.getElementById('progress');
+    p.innerHTML = '';
+    for (var i = 0; i < 5; i++) {
+      var d = document.createElement('div');
+      d.className = 'dot';
+      if (i < currentQ) d.classList.add('done');
+      if (i === currentQ) d.classList.add('current');
+      p.appendChild(d);
+    }
+  }
+
+  function renderQuestion() {
+    pickedIdx = -1;
+    var q = questions[currentQ];
+    document.getElementById('qnum').textContent = '第 ' + (currentQ + 1) + ' / 5 题';
+    document.getElementById('question').textContent = q.q;
+    var container = document.getElementById('options');
+    container.innerHTML = '';
+    var keys = ['A', 'B', 'C', 'D'];
+    keys.forEach(function(k, i) {
+      var btn = document.createElement('div');
+      btn.className = 'quiz-option fade-in';
+      btn.style.animationDelay = (i * 0.08) + 's';
+      btn.innerHTML = '<span class="opt-letter">' + k + '</span><span>' + q.opts[k] + '</span>';
+      btn.addEventListener('click', (function(idx, letter, el) {
+        return function() { pickOption(idx, letter, el); };
+      })(i, k, btn));
+      container.appendChild(btn);
+    });
+    var nextBtn = document.getElementById('btnNext');
+    nextBtn.classList.remove('active');
+    nextBtn.textContent = currentQ === 4 ? '查看结果' : '下一题';
+  }
+
+  function pickOption(idx, letter, el) {
+    document.querySelectorAll('.quiz-option').forEach(function(o) { o.classList.remove('picked'); });
+    el.classList.add('picked');
+    pickedIdx = idx;
+    document.getElementById('btnNext').classList.add('active');
+  }
+
+  function nextQuestion() {
+    if (pickedIdx === -1) return;
+    answers[currentQ] = ['A', 'B', 'C', 'D'][pickedIdx];
+    if (currentQ < 4) {
+      currentQ++;
+      renderProgress();
+      renderQuestion();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      showResult();
+    }
+  }
+
+  function getWinnerKey() {
+    var counts = { A: 0, B: 0, C: 0, D: 0 };
+    answers.forEach(function(a) { counts[a]++; });
+    var max = Math.max(counts.A, counts.B, counts.C, counts.D);
+    var topKeys = Object.keys(counts).filter(function(k) { return counts[k] === max; });
+    var winner = topKeys[0];
+    if (topKeys.length > 1) {
+      for (var i = answers.length - 1; i >= 0; i--) {
+        if (topKeys.indexOf(answers[i]) !== -1) { winner = answers[i]; break; }
+      }
+    }
+    return winner;
+  }
+
+  function showResult() {
+    var counts = { A: 0, B: 0, C: 0, D: 0 };
+    answers.forEach(function(a) { counts[a]++; });
+    var winner = getWinnerKey();
+    var p = personalities[winner];
+
+    document.getElementById('quiz').classList.remove('active');
+    document.getElementById('result').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    var hero = document.getElementById('resultHero');
+    hero.className = 'result-hero ' + p.color;
+    document.getElementById('resultAvatar').className = 'result-avatar scale-in ' + p.color;
+    document.getElementById('resultAvatar').textContent = p.icon;
+    document.getElementById('resultType').className = 'result-type ' + p.color;
+    document.getElementById('resultType').textContent = p.type;
+    document.getElementById('resultName').textContent = p.name;
+    document.getElementById('resultTagline').textContent = p.tagline;
+
+    var total = 5;
+    var bars = [
+      { key: 'A', label: '优化师', color: 'optimizer', count: counts.A },
+      { key: 'B', label: '破界者', color: 'breaker', count: counts.B },
+      { key: 'C', label: '梦想家', color: 'dreamer', count: counts.C },
+      { key: 'D', label: '实验者', color: 'experimenter', count: counts.D }
+    ];
+    var distDiv = document.getElementById('distribution');
+    distDiv.innerHTML = '';
+    bars.forEach(function(b) {
+      var pct = Math.round((b.count / total) * 100);
+      distDiv.innerHTML += '<div class="type-bar"><div class="bar-label"><span class="l">' + b.label + '</span><span class="r">' + b.count + '/5</span></div><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:0%" data-width="' + pct + '%"></div></div></div>';
+    });
+    setTimeout(function() {
+      distDiv.querySelectorAll('.bar-fill').forEach(function(f) {
+        f.style.width = f.getAttribute('data-width');
+      });
+    }, 300);
+
+    document.getElementById('description').innerHTML = p.description;
+    var tk = document.getElementById('toolkit');
+    tk.className = 'toolkit-card ' + p.color;
+    tk.innerHTML = '<h4>专属工具包</h4><p>' + p.toolkit + '</p>';
+  }
+
+  function shareResult() {
+    var p = personalities[getWinnerKey()];
+    var text = '我的创新人格是【' + p.name + '】！\n' + p.tagline + '\n\n扫码测测你的创新人格光谱';
+    if (navigator.share) {
+      navigator.share({ title: '创新人格光谱测试', text: text }).catch(function() {});
+    } else {
+      navigator.clipboard.writeText(text).then(function() {
+        alert('已复制分享文案，快去发给朋友吧！');
+      }).catch(function() {
+        alert('分享文案已准备好，长按可复制转发');
+      });
+    }
+  }
+
+  function retake() {
+    document.getElementById('result').classList.remove('active');
+    startQuiz();
+  }
+
+  function startQuiz() {
+    currentQ = 0; answers = []; pickedIdx = -1;
+    document.getElementById('landing').classList.remove('active');
+    document.getElementById('quiz').classList.add('active');
+    document.getElementById('result').classList.remove('active');
+    renderProgress();
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('btnStart').addEventListener('click', startQuiz);
+  document.getElementById('btnNext').addEventListener('click', nextQuestion);
+  document.getElementById('btnShare').addEventListener('click', shareResult);
+  document.getElementById('btnRetake').addEventListener('click', retake);
+})();
+</script>
+</body>
+</html>
